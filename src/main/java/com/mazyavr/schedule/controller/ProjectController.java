@@ -1,5 +1,6 @@
 package com.mazyavr.schedule.controller;
 
+import com.mazyavr.schedule.dto.SimpleResponse;
 import com.mazyavr.schedule.entity.ProjectEntity;
 import com.mazyavr.schedule.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,21 +21,23 @@ public class ProjectController {
   private ProjectService projectService;
 
   @PostMapping(path = "/add")
-  public @ResponseBody String addNewProject(@RequestParam String name) {
-    projectService.add(name);
-    return "Проект добавлен";
+  public @ResponseBody ProjectEntity addNewProject(@RequestParam String name) {
+    
+    return projectService.add(name);
   }
 
   @DeleteMapping(path = "/delete")
-  public @ResponseBody String delProject(@RequestParam Long id) {
+  public @ResponseBody SimpleResponse delProject(@RequestParam Long id) {
     projectService.delete(id);
-    return "Проект удален";
+    
+    return new SimpleResponse();
   }
 
   @PutMapping(path = "/update")
-  public @ResponseBody String updateProject(@RequestParam Long id, @RequestParam String name) {
-    projectService.update(id, name);
-    return "Проект обновлен";
+  public @ResponseBody ProjectEntity updateProject(@RequestParam Long id, @RequestParam String name) {
+
+    
+    return projectService.update(id, name);
   }
 
   @GetMapping(path = "/all")

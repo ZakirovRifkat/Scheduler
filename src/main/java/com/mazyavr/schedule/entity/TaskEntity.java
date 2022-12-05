@@ -19,6 +19,7 @@ public class TaskEntity {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long priority;
   private boolean status;
+  
   /**
    * A date-time with a time-zone in the ISO-8601 calendar system, such as 2007-12-03T10:15:30+01:00
    * Europe/Paris.

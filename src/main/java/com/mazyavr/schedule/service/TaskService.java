@@ -1,5 +1,6 @@
 package com.mazyavr.schedule.service;
 
+import com.mazyavr.schedule.dto.TaskDto;
 import com.mazyavr.schedule.entity.ProjectEntity;
 import com.mazyavr.schedule.entity.TaskEntity;
 import com.mazyavr.schedule.repository.ProjectRepository;
@@ -23,34 +24,41 @@ public class TaskService {
   }
 
   public TaskEntity add(Long projectId, String name, String description, ZonedDateTime time) {
-    TaskEntity t = new TaskEntity();
-    t.setDescription(description);
-    t.setName(name);
-    t.setTime(time);
-    t.setStatus(false);
+    TaskEntity task = new TaskEntity();
+    
+    task.setDescription(description);
+    task.setName(name);
+    task.setTime(time);
+    task.setStatus(false);
+    
     ProjectEntity project = projectRepository.findById(projectId).get();
-    t.setProject(project);
-    return taskRepository.save(t);
+    task.setProject(project);
+    
+    return (taskRepository.save(task));
   }
 
   public TaskEntity update(Long id, String name, String description, ZonedDateTime time,
       boolean status, Long priority) {
-    TaskEntity t = taskRepository.findById(id).get();
-    t.setName(name);
-    t.setDescription(description);
-    t.setTime(time);
-    t.setStatus(status);
-    t.setPriority(priority);
-    return taskRepository.save(t);
+    TaskEntity task = taskRepository.findById(id).get();
+    
+    task.setName(name);
+    task.setDescription(description);
+    task.setTime(time);
+    task.setStatus(status);
+    task.setPriority(priority);
+    
+    return taskRepository.save(task);
   }
 
   public Iterable<TaskEntity> getAll(Long projectId) {
     List<Long> ids = new ArrayList<>();
+    
     for (TaskEntity t : taskRepository.findAll()) {
       if (t.getProject().getId().equals(projectId)) {
         ids.add(t.getId());
       }
     }
+    
     return taskRepository.findAllById(ids);
   }
 }

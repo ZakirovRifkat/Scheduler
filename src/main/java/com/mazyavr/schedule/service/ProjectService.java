@@ -20,15 +20,19 @@ public class ProjectService {
   }
 
   public ProjectEntity add(String name) {
-    ProjectEntity p = new ProjectEntity();
-    p.setName(name);
-    return projectRepository.save(p);
+    
+    ProjectEntity project = new ProjectEntity();
+    project.setName(name);
+    
+    return projectRepository.save(project);
   }
 
   public ProjectEntity update(Long id, String name) {
+    
     ProjectEntity project = new ProjectEntity();
     project.setId(id);
     project.setName(name);
+    
     return projectRepository.save(project);
   }
 }

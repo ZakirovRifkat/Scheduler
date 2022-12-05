@@ -1,5 +1,7 @@
 package com.mazyavr.schedule.controller;
 
+import com.mazyavr.schedule.dto.SimpleResponse;
+import com.mazyavr.schedule.dto.TaskDto;
 import com.mazyavr.schedule.entity.TaskEntity;
 import com.mazyavr.schedule.service.TaskService;
 import java.time.ZonedDateTime;
@@ -21,24 +23,27 @@ public class TaskController {
   private TaskService taskService;
 
   @PostMapping(path = "/add")
-  public @ResponseBody String addNewTask(@RequestParam Long projectId, @RequestParam String name,
-      @RequestParam String description, @RequestParam ZonedDateTime time) {
+  public @ResponseBody TaskDto addNewTask(@RequestParam Long projectId, @RequestParam String name,
+                                          @RequestParam String description, @RequestParam ZonedDateTime time) {
     taskService.add(projectId, name, description, time);
-    return "Задача добавлена";
+    
+    var task = taskService.add(projectId, name, description, time);
+    return TaskDto.fromEntity(task);
   }
 
   @PutMapping(path = "/update")
-  public @ResponseBody String updateTask(@RequestParam Long id, @RequestParam String name,
+  public @ResponseBody TaskEntity updateTask(@RequestParam Long id, @RequestParam String name,
       @RequestParam String description, @RequestParam ZonedDateTime time,
       @RequestParam boolean status, @RequestParam Long priority) {
-    taskService.update(id, name, description, time, status, priority);
-    return "Задача обновлена";
+    
+    return taskService.update(id, name, description, time, status, priority);
   }
 
   @DeleteMapping(path = "/delete")
-  public @ResponseBody String deleteTask(@RequestParam Long id) {
+  public @ResponseBody SimpleResponse deleteTask(@RequestParam Long id) {
     taskService.delete(id);
-    return "Задача удалена";
+    
+    return new SimpleResponse();
   }
 
   @GetMapping(path = "/all")
@@ -46,3 +51,4 @@ public class TaskController {
     return taskService.getAll(projectId);
   }
 }
+
