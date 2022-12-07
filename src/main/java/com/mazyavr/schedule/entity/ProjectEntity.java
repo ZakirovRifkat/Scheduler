@@ -1,23 +1,20 @@
 package com.mazyavr.schedule.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 public class ProjectEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private long id;
   private String name;
+  
+  @OneToMany (cascade = CascadeType.ALL, mappedBy = "project")
+  private List<TaskEntity> tasks;
 
-  public ProjectEntity() {
-    // Конструктор по-умолчанию.
-  }
-
-  public Long getId() {
+  public long getId() {
     return id;
   }
 

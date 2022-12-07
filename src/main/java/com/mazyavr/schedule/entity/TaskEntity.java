@@ -13,28 +13,25 @@ public class TaskEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private long id;
   private String name;
   private String description;
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long priority;
+  private long priority;
   private boolean status;
   
   /**
    * A date-time with a time-zone in the ISO-8601 calendar system, such as 2007-12-03T10:15:30+01:00
    * Europe/Paris.
    */
-  private ZonedDateTime time;
-
+  private ZonedDateTime start;
+  private ZonedDateTime end;
+  
   @ManyToOne
   @JoinColumn(name = "project_id")
   private ProjectEntity project;
 
-  public TaskEntity() {
-    //Конструктор по-умолчанию.
-  }
-
-  public Long getId() {
+  public long getId() {
     return id;
   }
 
@@ -46,8 +43,12 @@ public class TaskEntity {
     return status;
   }
 
-  public ZonedDateTime getTime() {
-    return time;
+  public ZonedDateTime getStart() {
+    return start;
+  }
+  
+  public ZonedDateTime getEnd() {
+    return end;
   }
 
   public ProjectEntity getProject() {
@@ -66,8 +67,12 @@ public class TaskEntity {
     this.status = status;
   }
 
-  public void setTime(ZonedDateTime time) {
-    this.time = time;
+  public void setStart(ZonedDateTime start) {
+    this.start = start;
+  }
+  
+  public void setEnd(ZonedDateTime end) {
+    this.end = end;
   }
 
   public void setProject(ProjectEntity project) {
@@ -78,7 +83,7 @@ public class TaskEntity {
     return description;
   }
 
-  public Long getPriority() {
+  public long getPriority() {
     return priority;
   }
 

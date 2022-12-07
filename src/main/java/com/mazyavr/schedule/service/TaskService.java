@@ -1,6 +1,5 @@
 package com.mazyavr.schedule.service;
 
-import com.mazyavr.schedule.dto.TaskDto;
 import com.mazyavr.schedule.entity.ProjectEntity;
 import com.mazyavr.schedule.entity.TaskEntity;
 import com.mazyavr.schedule.repository.ProjectRepository;
@@ -23,38 +22,55 @@ public class TaskService {
     taskRepository.deleteById(id);
   }
 
-  public TaskEntity add(Long projectId, String name, String description, ZonedDateTime time) {
+  public TaskEntity add(Long projectId, String name, String description, ZonedDateTime start, ZonedDateTime end) {
+    
     TaskEntity task = new TaskEntity();
     
     task.setDescription(description);
     task.setName(name);
-    task.setTime(time);
+    task.setStart(start);
+    task.setEnd(end);
     task.setStatus(false);
     
-    ProjectEntity project = projectRepository.findById(projectId).get();
+    var projectO = projectRepository.findById(projectId);
+    
+    if(projectO.isEmpty()) {
+      throw new IllegalArgumentException("No such project");
+    }
+    
+    ProjectEntity project = projectO.get();
     task.setProject(project);
     
-    return (taskRepository.save(task));
+    return taskRepository.save(task);
   }
 
-  public TaskEntity update(Long id, String name, String description, ZonedDateTime time,
-      boolean status, Long priority) {
-    TaskEntity task = taskRepository.findById(id).get();
+  public TaskEntity update(long id, String name, String description, ZonedDateTime start, ZonedDateTime end,
+      boolean status, long priority) {
+    
+    var projectO = taskRepository.findById(id);
+  
+    if(projectO.isEmpty()) {
+      throw new IllegalArgumentException("No such project");
+    }
+    
+    TaskEntity task = projectO.get();
     
     task.setName(name);
     task.setDescription(description);
-    task.setTime(time);
+    task.setStart(start);
+    task.setEnd(end);
     task.setStatus(status);
     task.setPriority(priority);
     
     return taskRepository.save(task);
   }
 
-  public Iterable<TaskEntity> getAll(Long projectId) {
+  public Iterable<TaskEntity> getAll(long projectId) {
+    
     List<Long> ids = new ArrayList<>();
     
     for (TaskEntity t : taskRepository.findAll()) {
-      if (t.getProject().getId().equals(projectId)) {
+      if (t.getProject().getId() == projectId) {
         ids.add(t.getId());
       }
     }

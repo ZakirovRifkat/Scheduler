@@ -2,9 +2,26 @@ package com.mazyavr.schedule.dto;
 
 import com.mazyavr.schedule.entity.TaskEntity;
 
-public class TaskDto {
+import java.time.ZonedDateTime;
+
+public record TaskDto (
+  long id,
+  String name,
+  String description,
+  Long priority,
+  boolean status,
+  ZonedDateTime start,
+  ZonedDateTime end
+) {
+  public static TaskDto fromEntity (TaskEntity entity) {
+    return new TaskDto(entity.getId(), entity.getName(), entity.getDescription(), entity.getPriority(),
+      entity.isStatus(), entity.getStart(), entity.getEnd());
+  }
+}
+
+/*public class TaskDto {
   
-  private Long id;
+  private long id;
   private String name;
   private String description;
   private Long priority;
@@ -22,7 +39,7 @@ public class TaskDto {
   }
   
   
-  public void setId(Long id) {
+  public void setId(long id) {
     this.id = id;
   }
   
@@ -41,4 +58,4 @@ public class TaskDto {
   public void setStatus(boolean status) {
     this.status = status;
   }
-}
+}*/

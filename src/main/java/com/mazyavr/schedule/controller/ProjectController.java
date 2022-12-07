@@ -1,5 +1,6 @@
 package com.mazyavr.schedule.controller;
 
+import com.mazyavr.schedule.dto.ProjectDto;
 import com.mazyavr.schedule.dto.SimpleResponse;
 import com.mazyavr.schedule.entity.ProjectEntity;
 import com.mazyavr.schedule.service.ProjectService;
@@ -21,9 +22,8 @@ public class ProjectController {
   private ProjectService projectService;
 
   @PostMapping(path = "/add")
-  public @ResponseBody ProjectEntity addNewProject(@RequestParam String name) {
-    
-    return projectService.add(name);
+  public @ResponseBody ProjectDto addNewProject(@RequestParam String name) {
+    return ProjectDto.fromEntity(projectService.add(name));
   }
 
   @DeleteMapping(path = "/delete")
@@ -34,10 +34,8 @@ public class ProjectController {
   }
 
   @PutMapping(path = "/update")
-  public @ResponseBody ProjectEntity updateProject(@RequestParam Long id, @RequestParam String name) {
-
-    
-    return projectService.update(id, name);
+  public @ResponseBody ProjectDto updateProject(@RequestParam Long id, @RequestParam String name) {
+    return ProjectDto.fromEntity(projectService.update(id, name));
   }
 
   @GetMapping(path = "/all")
