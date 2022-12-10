@@ -64,11 +64,7 @@ public class TaskEntity {
    * System.out.printf("Event created: %s\n", event.getHtmlLink());
    */
   private ZonedDateTime start;
-  DateTime start = new DateTime("2007-12-03T10:15:30+01:00");
-
-
   private ZonedDateTime end;
-  DateTime endDateTime = new DateTime("2007-12-03T10:15:30+01:00");
   @ManyToOne
   @JoinColumn(name = "project_id")
   private ProjectEntity project;

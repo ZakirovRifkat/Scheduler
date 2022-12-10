@@ -1,32 +1,32 @@
 package com.mazyavr.schedule.controller;
 
-@RequestMapping(value = "/events")
-public ResponseEntity<String> getEvents(@AuthenticationPrincipal OAuth2User oAuth2User,
-@RequestParam(value = "sdate") String sdate,
-@RequestParam(value = "edate") String edate,
-@RequestParam(value = "q") String q) {
-        com.google.api.services.calendar.model.Events eventList;
-        String message;
-        try {
-        CustomOAuth2User customOAuth2User = (CustomOAuth2User)oAuth2User;
-        String token = customOAuth2User.getToken();
-        GoogleCredential credential = new GoogleCredential().setAccessToken(token);
+class HomeController {
+        final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        Calendar service =
+                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                        .setApplicationName(APPLICATION_NAME)
+                        .build();
 
-final DateTime date1 = new DateTime(sdate + "T00:00:00");
-final DateTime date2 = new DateTime(edate + "T23:59:59");
-
-        httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        Calendar service = new Calendar.Builder(httpTransport, JSON_FACTORY, credential)
-        .setApplicationName(APPLICATION_NAME).build();
-        Events events = service.events();
-        eventList = events.list("primary").setTimeZone("Asia/Kolkata").setTimeMin(date1).setTimeMax(date2).setQ(q).execute();
-        message = eventList.getItems().toString();
-        System.out.println("My:" + eventList.getItems());
-        } catch (Exception e) {
-
-        message = "Exception while handling OAuth2 callback (" + e.getMessage() + ")."
-        + " Redirecting to google connection status page.";
+        @RequestMapping(value = "/from-google")
+        public ResponseEntity<String> getEvents(
+                @RequestParam(value ="token") String token,
+                @RequestParam(value = "sdate") String sdate,
+                @RequestParam(value = "edate") String edate,
+                @RequestParam(value = "q") String q
+        ) {
+                // Представляем, что авторизация работает и что объект service создан
+                // Дальше здесь нужно получить список событий из гугла и сохранить
         }
 
-        return new ResponseEntity<>(message, HttpStatus.OK);
+        @RequestMapping(value = "/to-google")
+        public ResponseEntity<String> getEvents(
+                @RequestParam(value ="token") String token,
+                @RequestParam(value = "sdate") String sdate,
+                @RequestParam(value = "edate") String edate,
+                @RequestParam(value = "q") String q
+        ) {
+                // Представляем, что авторизация работает и что объект service создан
+                // Дальше здесь нужно наш список событий из базы данных загрузить в гугл
         }
+}
