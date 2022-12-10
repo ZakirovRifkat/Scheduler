@@ -25,22 +25,28 @@ public class TaskController {
    * @param start - format "2011-12-03T10:15:30+01:00" "год-месяц-день T час:минута:секунда+зона"
    * @param end   - format "2011-12-03T10:15:30+01:00"
    */
+  
   @PostMapping(path = "/add")
   public @ResponseBody TaskDto addNewTask(@RequestParam long id, @RequestParam String name,
       @RequestParam String description, @RequestParam String start,
       @RequestParam String end) {
-    ZonedDateTime st, en;
+      
+    ZonedDateTime start0;
+    ZonedDateTime end0;
+    
     try {
-      st = ZonedDateTime.parse(start);
-      en = ZonedDateTime.parse(end);
-      if (st.compareTo(en) > 0) {
+      start0 = ZonedDateTime.parse(start);
+      end0 = ZonedDateTime.parse(end);
+      
+      if (start0.compareTo(end0) > 0) {
         throw new IllegalArgumentException();
       }
     } catch (IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong Date");
     }
+    
     try {
-      var task = taskService.add(id, name, description, st, en);
+      var task = taskService.add(id, name, description, start0, end0);
       return TaskDto.fromEntity(task);
     } catch (IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No such project");
@@ -52,18 +58,23 @@ public class TaskController {
       @RequestParam String description, @RequestParam String start,
       @RequestParam String end,
       @RequestParam boolean status, @RequestParam Long priority) {
-    ZonedDateTime st, en;
+      
+    ZonedDateTime start0;
+    ZonedDateTime end0;
+    
     try {
-      st = ZonedDateTime.parse(start);
-      en = ZonedDateTime.parse(end);
-      if (st.compareTo(en) > 0) {
+      start0 = ZonedDateTime.parse(start);
+      end0 = ZonedDateTime.parse(end);
+      
+      if (start0.compareTo(end0) > 0) {
         throw new IllegalArgumentException();
       }
     } catch (IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong Date");
     }
+    
     try {
-      var task = taskService.update(id, name, description, st, en, status, priority);
+      var task = taskService.update(id, name, description, start0, end0, status, priority);
       return TaskDto.fromEntity(task);
     } catch (IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No such project");
@@ -80,6 +91,21 @@ public class TaskController {
   @GetMapping(path = "/all")
   public @ResponseBody Iterable<TaskEntity> getAllTasks(@RequestParam long id) {
     return taskService.getAll(id);
+  }
+  
+  @GetMapping(path = "/today")
+  public @ResponseBody Iterable<TaskEntity> getToday() {
+    return taskService.getToday();
+  }
+  
+  @GetMapping(path = "/planed")
+  public @ResponseBody Iterable<TaskEntity> getPlaned() {
+    return taskService.getPlaned();
+  }
+  
+  @GetMapping(path = "/notdone")
+  public @ResponseBody Iterable<TaskEntity> getNotDone() {
+    return taskService.getNotDone();
   }
 }
 

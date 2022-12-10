@@ -44,10 +44,10 @@ public class TaskService {
     return taskRepository.save(task);
   }
 
-  public TaskEntity update(long id, String name, String description, ZonedDateTime start, ZonedDateTime end,
+  public TaskEntity update(long projectId, String name, String description, ZonedDateTime start, ZonedDateTime end,
       boolean status, long priority) {
     
-    var projectO = taskRepository.findById(id);
+    var projectO = taskRepository.findById(projectId);
   
     if(projectO.isEmpty()) {
       throw new IllegalArgumentException("No such project");
@@ -77,4 +77,47 @@ public class TaskService {
     
     return taskRepository.findAllById(ids);
   }
+  
+  public Iterable<TaskEntity> getToday() {
+    
+    ZonedDateTime time = ZonedDateTime.now().toLocalDate().atStartOfDay(ZonedDateTime.now().getZone());
+    List<Long> ids = new ArrayList<>();
+  
+    for (TaskEntity t : taskRepository.findAll()) {
+      if (t.getStart().compareTo(time.plusDays(1)) < 0 && t.getEnd().compareTo(time) >= 0 && !t.isStatus()) {
+          ids.add(t.getId());
+      }
+    }
+  
+    return taskRepository.findAllById(ids);
+  }
+  
+  public Iterable<TaskEntity> getPlaned() {
+    
+    ZonedDateTime time = ZonedDateTime.now().toLocalDate().atStartOfDay(ZonedDateTime.now().getZone()).plusDays(1);
+    List<Long> ids = new ArrayList<>();
+    
+    for (TaskEntity t : taskRepository.findAll()) {
+      if (t.getStart().compareTo(time) >= 0 && !t.isStatus()) {
+        ids.add(t.getId());
+      }
+    }
+    
+    return taskRepository.findAllById(ids);
+  }
+  
+  public Iterable<TaskEntity> getNotDone() {
+    
+    ZonedDateTime time = ZonedDateTime.now();
+    List<Long> ids = new ArrayList<>();
+    
+    for (TaskEntity t : taskRepository.findAll()) {
+      if (t.getEnd().compareTo(time) < 0 && !t.isStatus()) {
+        ids.add(t.getId());
+      }
+    }
+    
+    return taskRepository.findAllById(ids);
+  }
+  
 }
