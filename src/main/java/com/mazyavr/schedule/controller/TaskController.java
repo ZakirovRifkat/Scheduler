@@ -14,6 +14,7 @@ import java.time.ZonedDateTime;
 
 @Controller
 @RequestMapping("/tasks")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class TaskController {
 
   @Autowired
