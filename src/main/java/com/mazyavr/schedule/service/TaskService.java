@@ -22,7 +22,7 @@ public class TaskService {
     taskRepository.deleteById(id);
   }
 
-  public TaskEntity add(Long projectId, String name, String description, ZonedDateTime start, ZonedDateTime end) {
+  public TaskEntity add(Long projectId, String name, String description, ZonedDateTime start, ZonedDateTime end, long priority) {
     
     TaskEntity task = new TaskEntity();
     
@@ -31,6 +31,7 @@ public class TaskService {
     task.setStart(start);
     task.setEnd(end);
     task.setStatus(false);
+    task.setPriority(priority);
     
     var projectO = projectRepository.findById(projectId);
     
