@@ -1,7 +1,10 @@
 package com.mazyavr.schedule.controller;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
@@ -15,9 +18,7 @@ import com.mazyavr.schedule.repository.ProjectRepository;
 import com.mazyavr.schedule.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
@@ -29,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Controller
+@RequestMapping(path = "/google")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 class GoogleController {
     final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     Calendar service = null;
@@ -39,9 +42,13 @@ class GoogleController {
     @Autowired
     ProjectRepository projectRepository;
 
-    void initService() {
+    private void initService() {
         if (service != null) {
             return;
+        }
+
+        if (token == null) {
+            throw new RuntimeException("Unable to initialize google calendar");
         }
 
         try {
@@ -60,112 +67,124 @@ class GoogleController {
         }
     }
 
-    @RequestMapping(value = "/google/callback")
+    @GetMapping(value = "/callback")
     public RedirectView googleCallback(
-            @RequestParam(value = "token") String token
+            @RequestParam(value = "code") String code,
+            @RequestParam(value = "state") String redirectUri
     ) {
-        this.token = token;
-        return new RedirectView("http://localhost:3000");
+        try {
+            GoogleTokenResponse response = new GoogleAuthorizationCodeTokenRequest(
+                    new NetHttpTransport(), new GsonFactory(),
+                    "530835646351-odkl0qt3l07n6s7httrpsd6rd37ka5l9.apps.googleusercontent.com", "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",
+                    code, "http://localhost:8080/google/callback")
+                    .execute();
+
+            this.token = response.getAccessToken();
+        } catch (IOException e) {
+        }
+
+        return new RedirectView(redirectUri);
     }
 
-    @RequestMapping(value = "/from-google")
+    @GetMapping(value = "/is-authorized")
+    public @ResponseBody IsAuthorizedResponse isAuthorized() {
+        return new IsAuthorizedResponse(token != null);
+    }
+
+    @PostMapping(value = "/download")
     public @ResponseBody SimpleResponse getEvents(
             @RequestParam(value = "projectId") long projectId
-    ) {
+    ) throws IOException {
         initService();
 
         var projectO = projectRepository.findById(projectId);
-
         if (projectO.isEmpty()) {
             throw new IllegalArgumentException("No such project");
         }
 
-        try {
-            DateTime now = new DateTime(System.currentTimeMillis());
-            Events events = service.events().list("primary")
-                    .setTimeMin(now)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .execute();
-            List<Event> items = events.getItems();
-            if (items.isEmpty()) {
-                System.out.println("No upcoming events found.");
-            } else {
-                System.out.println("Upcoming events");
-                for (Event event : items) {
-                    DateTime start = event.getStart().getDateTime();
-                    if (start == null) {
-                        start = event.getStart().getDate();
-                    }
-                    String description = event.getDescription();
-                    DateTime end = event.getEnd().getDateTime();
-                    if (end == null) {
-                        end = event.getEnd().getDate();
-                    }
+        var project = projectO.get();
 
-                    //System.out.printf("%s (%s)\n", event.getSummary(), start);
-                    ZonedDateTime startDateTime = ZonedDateTime.ofInstant(
-                            Instant.ofEpochMilli(start.getValue()),
-                            ZoneId.systemDefault()
-                    );
-                    ZonedDateTime endDateTime = ZonedDateTime.ofInstant(
-                            Instant.ofEpochMilli(start.getValue()),
-                            ZoneId.systemDefault()
-                    );
-
-                    TaskEntity task = new TaskEntity();
-                    task.setDescription(description);
-                    //task.setName(name); ?? name в гугл календаре эт кто
-                    task.setStart(startDateTime);
-                    task.setEnd(endDateTime);
-                    task.setStatus(false);
-
-                    taskRepository.save(task);
+        DateTime now = new DateTime(System.currentTimeMillis());
+        Events events = service.events().list("primary")
+                .setTimeMin(now)
+                .setOrderBy("startTime")
+                .setSingleEvents(true)
+                .execute();
+        List<Event> items = events.getItems();
+        if (items.isEmpty()) {
+            System.out.println("No upcoming events found.");
+        } else {
+            System.out.println("Upcoming events");
+            for (Event event : items) {
+                DateTime start = event.getStart().getDateTime();
+                if (start == null) {
+                    start = event.getStart().getDate();
                 }
-            }
-        } catch (IOException e) {
+                String description = event.getDescription();
+                DateTime end = event.getEnd().getDateTime();
+                if (end == null) {
+                    end = event.getEnd().getDate();
+                }
 
+                ZonedDateTime startDateTime = ZonedDateTime.ofInstant(
+                        Instant.ofEpochMilli(start.getValue()),
+                        ZoneId.systemDefault()
+                );
+                ZonedDateTime endDateTime = ZonedDateTime.ofInstant(
+                        Instant.ofEpochMilli(start.getValue()),
+                        ZoneId.systemDefault()
+                );
+
+                TaskEntity task = new TaskEntity();
+                task.setName(event.getSummary());
+                task.setDescription(description);
+                task.setStart(startDateTime);
+                task.setEnd(endDateTime);
+                task.setStatus(false);
+                task.setProject(project);
+
+                taskRepository.save(task);
+            }
         }
 
         return new SimpleResponse();
     }
 
-
-    @RequestMapping(value = "/to-google")
+    @PostMapping(value = "/upload")
     public @ResponseBody SimpleResponse setEvents(
             @RequestParam(value = "projectId") long projectId
-    ) {
+    ) throws IOException {
+        initService();
+
         List<TaskEntity> tasks = new ArrayList<>();
 
         for (TaskEntity t : taskRepository.findAll()) {
             if (t.getProject().getId() == projectId) {
-                // ids.add(t.getId());
                 tasks.add(t);
             }
         }
 
-        try {
-            for (var t : tasks) {
-                Event event = new Event()
-                        .setDescription(t.getDescription());
+        for (var t : tasks) {
+            Event event = new Event()
+                    .setSummary(t.getName())
+                    .setDescription(t.getDescription());
 
-                DateTime startDateTime = new DateTime(t.getStart().toEpochSecond() * 1000);
-                EventDateTime start = new EventDateTime()
-                        .setDateTime(startDateTime);
-                event.setStart(start);
+            DateTime startDateTime = new DateTime(t.getStart().toEpochSecond() * 1000);
+            EventDateTime start = new EventDateTime()
+                    .setDateTime(startDateTime);
+            event.setStart(start);
 
-                DateTime endDateTime = new DateTime(t.getEnd().toEpochSecond() * 1000);
-                EventDateTime end = new EventDateTime()
-                        .setDateTime(endDateTime);
-                event.setEnd(end);
+            DateTime endDateTime = new DateTime(t.getEnd().toEpochSecond() * 1000);
+            EventDateTime end = new EventDateTime()
+                    .setDateTime(endDateTime);
+            event.setEnd(end);
 
-                String calendarId = "primary";
-                event = service.events().insert(calendarId, event).execute();
-                System.out.printf("Event created: %s\n", event.getHtmlLink());
-            }
-        } catch (IOException e) {
-
+            String calendarId = "primary";
+            event = service.events().insert(calendarId, event).execute();
         }
         return new SimpleResponse();
+    }
+
+    private record IsAuthorizedResponse(boolean authorized) {
     }
 }
