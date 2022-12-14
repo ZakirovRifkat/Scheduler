@@ -66,16 +66,17 @@ public class TaskService {
   }
 
   public Iterable<TaskEntity> getAll(long projectId) {
-    
     List<Long> ids = new ArrayList<>();
+    List<TaskEntity> tasks = new ArrayList();
     
     for (TaskEntity t : taskRepository.findAll()) {
       if (t.getProject().getId() == projectId) {
-        ids.add(t.getId());
+        // ids.add(t.getId());
+        tasks.add(t);
       }
     }
     
-    return taskRepository.findAllById(ids);
+    return tasks;
   }
   
   public Iterable<TaskEntity> getToday() {

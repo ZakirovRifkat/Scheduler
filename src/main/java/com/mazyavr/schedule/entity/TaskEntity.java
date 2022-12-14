@@ -24,9 +24,9 @@ public class TaskEntity {
    * A date-time with a time-zone in the ISO-8601 calendar system, such as 2007-12-03T10:15:30+01:00
    * Europe/Paris.
    */
+
   private ZonedDateTime start;
   private ZonedDateTime end;
-  
   @ManyToOne
   @JoinColumn(name = "project_id")
   private ProjectEntity project;
