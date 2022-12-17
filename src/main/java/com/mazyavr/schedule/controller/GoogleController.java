@@ -106,7 +106,7 @@ class GoogleController {
 
         DateTime now = new DateTime(System.currentTimeMillis());
         Events events = service.events().list("primary")
-                .setTimeMin(now)
+//                .setTimeMin(now)
                 .setOrderBy("startTime")
                 .setSingleEvents(true)
                 .execute();
@@ -121,6 +121,7 @@ class GoogleController {
                     start = event.getStart().getDate();
                 }
                 String description = event.getDescription();
+                String summary = event.getSummary();
                 DateTime end = event.getEnd().getDateTime();
                 if (end == null) {
                     end = event.getEnd().getDate();
@@ -136,8 +137,8 @@ class GoogleController {
                 );
 
                 TaskEntity task = new TaskEntity();
-                task.setName(event.getSummary());
-                task.setDescription(description);
+                task.setName(summary == null ? "" : summary);
+                task.setDescription(description == null ? "" : description.length() > 254 ? description.substring(0, 254) : description);
                 task.setStart(startDateTime);
                 task.setEnd(endDateTime);
                 task.setStatus(false);
