@@ -30,7 +30,7 @@ public class TaskController {
   @PostMapping(path = "/add")
   public @ResponseBody TaskDto addNewTask(@RequestParam long id, @RequestParam String name,
       @RequestParam String description, @RequestParam String start,
-      @RequestParam String end) {
+      @RequestParam String end, @RequestParam long priority) {
       
     ZonedDateTime start0;
     ZonedDateTime end0;
@@ -47,7 +47,7 @@ public class TaskController {
     }
     
     try {
-      var task = taskService.add(id, name, description, start0, end0);
+      var task = taskService.add(id, name, description, start0, end0, priority);
       return TaskDto.fromEntity(task);
     } catch (IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No such project");
