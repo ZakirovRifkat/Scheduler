@@ -1,5 +1,5 @@
 .idea
 .vscode
-target
+target/*
 src/main/resources/application.properties
 !target/schedule-0.0.1-SNAPSHOT.jar
