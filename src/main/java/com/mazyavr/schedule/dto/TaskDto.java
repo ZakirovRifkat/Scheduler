@@ -24,8 +24,7 @@ public record TaskDto (
   ZonedDateTime end
 ) {
   @Operation(
-      summary = "Создание сущности таска",
-      description = "Создаём таск с айди, именем, описанием, приоритетом статусом, временем начала и окончания"
+      summary = "Создание задачи"
   )
   public static TaskDto fromEntity (TaskEntity entity) {
     return new TaskDto(entity.getId(), entity.getName(), entity.getDescription(), entity.getPriority(),
