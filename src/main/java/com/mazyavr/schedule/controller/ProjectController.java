@@ -27,7 +27,7 @@ public class ProjectController {
   }
 
   @Operation(
-      summary = "Получение списка всех проектов"
+      summary = "Удаление проекта"
   )
   @DeleteMapping(path = "/delete")
   public @ResponseBody SimpleResponse delProject(@RequestParam Long id) {
@@ -45,7 +45,7 @@ public class ProjectController {
   }
 
   @Operation(
-      summary = "Удаление всех проектов"
+      summary = "Получение списка всех проектов"
   )
   @GetMapping(path = "/all")
   public @ResponseBody Iterable<ProjectEntity> getAllProjects() {
