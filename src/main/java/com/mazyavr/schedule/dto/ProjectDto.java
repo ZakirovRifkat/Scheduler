@@ -13,8 +13,7 @@ public record ProjectDto (
   
 ) {
   @Operation(
-      summary = "Создаёт сущность проекта",
-      description = "Создаёт проект с айди и именем"
+      summary = "Создаёт проект"
   )
   public static ProjectDto fromEntity (ProjectEntity entity) {
     return new ProjectDto(entity.getId(), entity.getName());
