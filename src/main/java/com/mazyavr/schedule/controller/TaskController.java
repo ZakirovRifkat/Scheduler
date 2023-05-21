@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.ZonedDateTime;
 
-@Tag(name="Таск контроллер", description="Контролер для работы с тасками")
+@Tag(name="Котроллер задач")
 @Controller
 @RequestMapping("/tasks")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
