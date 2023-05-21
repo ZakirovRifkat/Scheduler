@@ -16,6 +16,8 @@ import com.mazyavr.schedule.dto.SimpleResponse;
 import com.mazyavr.schedule.entity.TaskEntity;
 import com.mazyavr.schedule.repository.ProjectRepository;
 import com.mazyavr.schedule.repository.TaskRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Tag(name="Google контроллер", description="Контроллер для интеграции с google-календарем")
 @Controller
 @RequestMapping(path = "/google")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
@@ -67,6 +70,10 @@ class GoogleController {
         }
     }
 
+    @Operation(
+        summary = "Ручка обратного вызова OAuth",
+        description = "Обменивает код, полученный при авторизации OAuth, на токен, который можно использовать для запросов к API гугла"
+    )
     @GetMapping(value = "/callback")
     public RedirectView googleCallback(
             @RequestParam(value = "code") String code,
@@ -86,11 +93,17 @@ class GoogleController {
         return new RedirectView(redirectUri);
     }
 
+    @Operation(
+        summary = "Сообщает, авторизовался ли уже пользователь через OAuth"
+    )
     @GetMapping(value = "/is-authorized")
     public @ResponseBody IsAuthorizedResponse isAuthorized() {
         return new IsAuthorizedResponse(token != null);
     }
 
+    @Operation(
+        summary = "Получение событий из google-календаря"
+    )
     @PostMapping(value = "/download")
     public @ResponseBody SimpleResponse getEvents(
             @RequestParam(value = "projectId") long projectId
@@ -151,6 +164,9 @@ class GoogleController {
         return new SimpleResponse();
     }
 
+    @Operation(
+        summary = "Передача событий google-календарю"
+    )
     @PostMapping(value = "/upload")
     public @ResponseBody SimpleResponse setEvents(
             @RequestParam(value = "projectId") long projectId
