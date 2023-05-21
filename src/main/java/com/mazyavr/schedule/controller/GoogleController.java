@@ -168,8 +168,7 @@ class GoogleController {
     }
 
     @Operation(
-        summary = "Передача события google-календарю",
-        description = "Позволяет сохранить события в google-календаре"
+        summary = "Передача событий google-календарю"
     )
     @PostMapping(value = "/upload")
     public @ResponseBody SimpleResponse setEvents(
