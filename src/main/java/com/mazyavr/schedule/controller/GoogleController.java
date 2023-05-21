@@ -97,8 +97,7 @@ class GoogleController {
     }
 
     @Operation(
-        summary = "Авторизованный ответ",
-        description = "Токен не должен быть нулевым"
+        summary = "Сообщает, авторизовался ли уже пользователь через OAuth"
     )
     @GetMapping(value = "/is-authorized")
     public @ResponseBody IsAuthorizedResponse isAuthorized() {
