@@ -74,8 +74,8 @@ class GoogleController {
     }
 
     @Operation(
-        summary = "Ответ google на запрос",
-        description = "Получает токен доступа"
+        summary = "Ручка обратного вызова OAuth",
+        description = "Обменивает код, полученный при авторизации OAuth, на токен, который можно использовать для запросов к API гугла"
     )
     @GetMapping(value = "/callback")
     public RedirectView googleCallback(
