@@ -45,9 +45,6 @@ class GoogleController {
     @Autowired
     ProjectRepository projectRepository;
 
-    @Operation(
-        summary = "Инициализация google календаря пользователя"
-    )
     private void initService() {
         if (service != null) {
             return;

@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name="Контроллер проектов", description="Контроллер для работы с проектами: добавлением, удалением, редактированием, удалением всех")
 @Controller
 @RequestMapping(path = "/projects")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
@@ -28,7 +27,7 @@ public class ProjectController {
   }
 
   @Operation(
-      summary = "Удаление проекта"
+      summary = "Получение списка всех проектов"
   )
   @DeleteMapping(path = "/delete")
   public @ResponseBody SimpleResponse delProject(@RequestParam Long id) {

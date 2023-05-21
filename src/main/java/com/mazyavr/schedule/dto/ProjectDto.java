@@ -4,11 +4,10 @@ import com.mazyavr.schedule.entity.ProjectEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Сущность проекта")
 public record ProjectDto (
-    @Schema(description = "Айди проекта")
+    @Schema(description = "ID")
   long id,
-    @Schema(description = "Имя")
+    @Schema(description = "Название")
     String name
   
 ) {
