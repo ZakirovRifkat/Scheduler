@@ -105,8 +105,7 @@ class GoogleController {
     }
 
     @Operation(
-        summary = "Получение событий из google-календаря",
-        description = "Позволяет загрузить событие из google-календаря"
+        summary = "Получение событий из google-календаря"
     )
     @PostMapping(value = "/download")
     public @ResponseBody SimpleResponse getEvents(
