@@ -16,6 +16,8 @@ import com.mazyavr.schedule.dto.SimpleResponse;
 import com.mazyavr.schedule.entity.TaskEntity;
 import com.mazyavr.schedule.repository.ProjectRepository;
 import com.mazyavr.schedule.repository.TaskRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Tag(name="Google контроллер", description="Контроллер для интеграции с google-календарем")
 @Controller
 @RequestMapping(path = "/google")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
@@ -42,6 +45,9 @@ class GoogleController {
     @Autowired
     ProjectRepository projectRepository;
 
+    @Operation(
+        summary = "Инициализация google календаря пользователя"
+    )
     private void initService() {
         if (service != null) {
             return;
@@ -67,6 +73,10 @@ class GoogleController {
         }
     }
 
+    @Operation(
+        summary = "Ответ google на запрос",
+        description = "Получает токен доступа"
+    )
     @GetMapping(value = "/callback")
     public RedirectView googleCallback(
             @RequestParam(value = "code") String code,
@@ -86,11 +96,19 @@ class GoogleController {
         return new RedirectView(redirectUri);
     }
 
+    @Operation(
+        summary = "Авторизованный ответ",
+        description = "Токен не должен быть нулевым"
+    )
     @GetMapping(value = "/is-authorized")
     public @ResponseBody IsAuthorizedResponse isAuthorized() {
         return new IsAuthorizedResponse(token != null);
     }
 
+    @Operation(
+        summary = "Получение событий из google-календаря",
+        description = "Позволяет загрузить событие из google-календаря"
+    )
     @PostMapping(value = "/download")
     public @ResponseBody SimpleResponse getEvents(
             @RequestParam(value = "projectId") long projectId
@@ -151,6 +169,10 @@ class GoogleController {
         return new SimpleResponse();
     }
 
+    @Operation(
+        summary = "Передача события google-календарю",
+        description = "Позволяет сохранить события в google-календаре"
+    )
     @PostMapping(value = "/upload")
     public @ResponseBody SimpleResponse setEvents(
             @RequestParam(value = "projectId") long projectId

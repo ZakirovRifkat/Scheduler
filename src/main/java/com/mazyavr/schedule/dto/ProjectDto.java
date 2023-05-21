@@ -1,13 +1,21 @@
 package com.mazyavr.schedule.dto;
 
 import com.mazyavr.schedule.entity.ProjectEntity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Сущность проекта")
 public record ProjectDto (
-  
+    @Schema(description = "Айди проекта")
   long id,
-  String name
+    @Schema(description = "Имя")
+    String name
   
 ) {
+  @Operation(
+      summary = "Создаёт сущность проекта",
+      description = "Создаёт проект с айди и именем"
+  )
   public static ProjectDto fromEntity (ProjectEntity entity) {
     return new ProjectDto(entity.getId(), entity.getName());
   }

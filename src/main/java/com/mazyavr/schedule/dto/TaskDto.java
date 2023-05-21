@@ -2,17 +2,31 @@ package com.mazyavr.schedule.dto;
 
 import com.mazyavr.schedule.entity.TaskEntity;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.ZonedDateTime;
 
+@Schema(description = "Сущность события (таска)")
 public record TaskDto (
+    @Schema(description = "Айди события")
   long id,
+    @Schema(description = "Имя события")
   String name,
+    @Schema(description = "Описание события")
   String description,
+    @Schema(description = "Приоритет события")
   Long priority,
+    @Schema(description = "Статус выполненности")
   boolean status,
+    @Schema(description = "Время начала события")
   ZonedDateTime start,
+    @Schema(description = "Время окончания события")
   ZonedDateTime end
 ) {
+  @Operation(
+      summary = "Создание сущности таска",
+      description = "Создаём таск с айди, именем, описанием, приоритетом статусом, временем начала и окончания"
+  )
   public static TaskDto fromEntity (TaskEntity entity) {
     return new TaskDto(entity.getId(), entity.getName(), entity.getDescription(), entity.getPriority(),
       entity.isStatus(), entity.getStart(), entity.getEnd());
