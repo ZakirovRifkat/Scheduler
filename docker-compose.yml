@@ -1,0 +1,31 @@
+version: "1.0"
+
+services:
+  app:
+    image: docker.io/library/schedule:0.0.1
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysqldb
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "spring.datasource.url": "jdbc:mysql://mysqldb:3306/scheduler?useSSL=false&allowPublicKeyRetrieval=true",
+        "spring.datasource.username": "scheduler",
+        "spring.datasource.password": "pwd"
+      }'
+
+  mysqldb:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pwd
+      MYSQL_DATABASE: scheduler
+      MYSQL_USER: scheduler
+      MYSQL_PASSWORD: pwd
+
+  front:
+    image: scheduler-front
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_HOST: http://localhost:8080
