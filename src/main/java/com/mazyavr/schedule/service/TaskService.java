@@ -67,12 +67,10 @@ public class TaskService {
   }
 
   public Iterable<TaskEntity> getAll(long projectId) {
-    List<Long> ids = new ArrayList<>();
-    List<TaskEntity> tasks = new ArrayList();
+    List<TaskEntity> tasks = new ArrayList<>();
     
     for (TaskEntity t : taskRepository.findAll()) {
       if (t.getProject().getId() == projectId) {
-        // ids.add(t.getId());
         tasks.add(t);
       }
     }
@@ -80,13 +78,13 @@ public class TaskService {
     return tasks;
   }
   
-  public Iterable<TaskEntity> getToday() {
+  public Iterable<TaskEntity> getToday(long userId) {
     
     ZonedDateTime time = ZonedDateTime.now().toLocalDate().atStartOfDay(ZonedDateTime.now().getZone());
     List<Long> ids = new ArrayList<>();
   
     for (TaskEntity t : taskRepository.findAll()) {
-      if (t.getStart().compareTo(time.plusDays(1)) < 0 && t.getEnd().compareTo(time) >= 0 && !t.isStatus()) {
+      if (t.getProject().getUser().getId()==userId&&t.getStart().compareTo(time.plusDays(1)) < 0 && t.getEnd().compareTo(time) >= 0 && !t.isStatus()) {
           ids.add(t.getId());
       }
     }
@@ -94,13 +92,13 @@ public class TaskService {
     return taskRepository.findAllById(ids);
   }
   
-  public Iterable<TaskEntity> getPlaned() {
+  public Iterable<TaskEntity> getPlaned(long userId) {
     
     ZonedDateTime time = ZonedDateTime.now().toLocalDate().atStartOfDay(ZonedDateTime.now().getZone()).plusDays(1);
     List<Long> ids = new ArrayList<>();
     
     for (TaskEntity t : taskRepository.findAll()) {
-      if (t.getStart().compareTo(time) >= 0 && !t.isStatus()) {
+      if (t.getProject().getUser().getId()==userId&&t.getStart().compareTo(time) >= 0 && !t.isStatus()) {
         ids.add(t.getId());
       }
     }
@@ -108,13 +106,13 @@ public class TaskService {
     return taskRepository.findAllById(ids);
   }
   
-  public Iterable<TaskEntity> getNotDone() {
+  public Iterable<TaskEntity> getNotDone(long userId) {
     
     ZonedDateTime time = ZonedDateTime.now();
     List<Long> ids = new ArrayList<>();
     
     for (TaskEntity t : taskRepository.findAll()) {
-      if (t.getEnd().compareTo(time) < 0 && !t.isStatus()) {
+      if (t.getProject().getUser().getId()==userId&&t.getEnd().compareTo(time) < 0 && !t.isStatus()) {
         ids.add(t.getId());
       }
     }

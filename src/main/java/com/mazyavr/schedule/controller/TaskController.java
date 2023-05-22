@@ -95,18 +95,18 @@ public class TaskController {
   }
   
   @GetMapping(path = "/today")
-  public @ResponseBody Iterable<TaskEntity> getToday() {
-    return taskService.getToday();
+  public @ResponseBody Iterable<TaskEntity> getToday(@RequestParam long userId) {
+    return taskService.getToday(userId);
   }
   
   @GetMapping(path = "/planed")
-  public @ResponseBody Iterable<TaskEntity> getPlaned() {
-    return taskService.getPlaned();
+  public @ResponseBody Iterable<TaskEntity> getPlaned(@RequestParam long userId) {
+    return taskService.getPlaned(userId);
   }
   
   @GetMapping(path = "/notdone")
-  public @ResponseBody Iterable<TaskEntity> getNotDone() {
-    return taskService.getNotDone();
+  public @ResponseBody Iterable<TaskEntity> getNotDone(@RequestParam long userId) {
+    return taskService.getNotDone(userId);
   }
 }
 
