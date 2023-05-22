@@ -14,20 +14,21 @@ public class UserEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
-  private String name;
-  private String email;
-  private String refreshToken;
+  
+  private long email;
+  private String token;
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
   private List<ProjectEntity> projects;
-
-
-  public long getId() {
-    return id;
-  }
-
+  
+  public long getId() { return id; }
+  
   public void setId(long id) {
     this.id = id;
   }
+  
+  public long getEmail() {return email; }
+  
+  public void setEmail(long email) { this.email = email; }
 
   public List<ProjectEntity> getProjects() {
     return projects;
@@ -37,27 +38,11 @@ public class UserEntity {
     this.projects = projects;
   }
 
-  public String getName() {
-    return name;
+  public String getToken() {
+    return token;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getRefreshToken() {
-    return refreshToken;
-  }
-
-  public void setRefreshToken(String refreshToken) {
-    this.refreshToken = refreshToken;
+  public void setToken(String token) {
+    this.token = token;
   }
 }
