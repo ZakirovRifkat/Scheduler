@@ -14,6 +14,10 @@ public class ProjectEntity {
   @OneToMany (cascade = CascadeType.ALL, mappedBy = "project")
   private List<TaskEntity> tasks;
 
+  @ManyToOne
+  @JoinColumn(name = "user_id")
+  private UserEntity user;
+
   public long getId() {
     return id;
   }
@@ -28,5 +32,13 @@ public class ProjectEntity {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public UserEntity getUser() {
+    return user;
+  }
+
+  public void setUser(UserEntity user) {
+    this.user = user;
   }
 }
