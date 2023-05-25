@@ -37,14 +37,14 @@ public class ProjectService {
 
     ProjectEntity project = new ProjectEntity();
     project.setName(name);
-
-    var user0 = userRepository.findById(userId);
-
-    if (user0.isEmpty()) {
+  
+    var userO = userRepository.findById(userId);
+    
+    if (userO.isEmpty()) {
       throw new IllegalArgumentException("No such user");
     }
-
-    UserEntity user = user0.get();
+    
+    UserEntity user = userO.get();
     project.setUser(user);
 
     return projectRepository.save(project);
