@@ -84,7 +84,7 @@ public class TaskService {
     List<Long> ids = new ArrayList<>();
   
     for (TaskEntity t : taskRepository.findAll()) {
-      if (t.getProject().getUser().getId()==userId&&t.getStart().compareTo(time.plusDays(1)) < 0 && t.getEnd().compareTo(time) >= 0 && !t.isStatus()) {
+      if (t.getId()==userId&&t.getStart().compareTo(time.plusDays(1)) < 0 && t.getEnd().compareTo(time) >= 0 && !t.isStatus()) {
           ids.add(t.getId());
       }
     }

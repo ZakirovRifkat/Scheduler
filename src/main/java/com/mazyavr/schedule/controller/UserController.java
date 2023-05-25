@@ -2,6 +2,7 @@ package com.mazyavr.schedule.controller;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder.In;
 import org.apache.tomcat.jni.Time;
@@ -42,6 +44,8 @@ import org.springframework.web.servlet.view.RedirectView;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Random;
+
 
 @Controller
 @RequestMapping("/user")
@@ -57,40 +61,32 @@ public class UserController {
   @Autowired
   private TaskRepository taskRepository;
 
-  private String token;
+  private String refreshToken;
+  private String googleId;
   private Integer lifespan;
 
   private Calendar initCalendar(long userId) {
 
     Calendar userCalendar = null;
 
-    String userToken = userRepository.findById(userId).get().getToken();
+    String userToken = userRepository.findById(userId).get().getRefreshToken();
 
     if (userToken == null) {
       throw new RuntimeException("Unable to initialize google calendar");
     }
-
+  
     try {
       var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
       var credential = new GoogleCredential().setAccessToken(userToken);
-
-      userCalendar = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-          .setApplicationName("DownScheduler")
-          .build();
+      
+      return new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+        .setApplicationName("DownScheduler")
+        .build();
     } catch (IOException | GeneralSecurityException e) {
-
-    }
-
-    if (userCalendar == null) {
       throw new RuntimeException("Unable to initialize google calendar");
     }
-    return userCalendar;
   }
-
-  /**
-   * Здесь реализована только регистрация(добавление в БД), но не авторизация(обновление юзверя в
-   * БД)
-   */
+  
   @PostMapping(path = "/login")
   public @ResponseBody RedirectView login(
       @RequestParam(value = "code") String code,
@@ -98,27 +94,68 @@ public class UserController {
       HttpServletResponse servletResponse
   ) {
     try {
+      var HTTP_TRANSPORT = new NetHttpTransport();
+      var CLIENT_ID = "530835646351-odkl0qt3l07n6s7httrpsd6rd37ka5l9.apps.googleusercontent.com";
+      
       GoogleTokenResponse response = new GoogleAuthorizationCodeTokenRequest(
-          new NetHttpTransport(), new GsonFactory(),
-          "530835646351-odkl0qt3l07n6s7httrpsd6rd37ka5l9.apps.googleusercontent.com",
-          "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",
-          code, "http://localhost:8080/users/login")
-          .execute();
-      this.token = response.getAccessToken();
+        HTTP_TRANSPORT, new GsonFactory(), CLIENT_ID,
+        "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",
+        code, "http://localhost:8080/users/login")
+        .execute();
+  
+      this.refreshToken = response.getAccessToken();
+      var idToken = response.getIdToken();
+      var verifier = new GoogleIdTokenVerifier.Builder(HTTP_TRANSPORT, JSON_FACTORY)
+        .setAudience(Collections.singletonList(CLIENT_ID)).build();
+  
+      var verifiedToken = verifier.verify(idToken);
+      
+      if (verifiedToken != null) {
+        googleId = verifiedToken.getPayload().getSubject();
+      }
+        
       this.lifespan = Math.toIntExact(response.getExpiresInSeconds());
-
-      //Здесь должна быть проверка на наличие пользователя в БД, но пока сделаем просто регистрацию для всех
-      UserEntity user = new UserEntity();
-      user.setToken(token);
-      //user.setEmail(user.getId());
-      userRepository.save(user);
+  
+      UserEntity user = null;
+      
+      for (UserEntity t : userRepository.findAll()) {
+        if (t.getGoogleId() == googleId) {
+          user = t;
+        }
+      }
+      
+      if (user != null){
+        user = new UserEntity();
+        
+        Boolean isFree;
+        long id;
+        Random r = new Random();
+        
+        do{
+          id = r.nextLong(1073741824); //2^30 = 1073741824
+          isFree = true;
+          
+          for (UserEntity t : userRepository.findAll()) {
+            if (t.getId() == id) {
+              isFree = false;
+              break;
+            }
+          }
+          
+        } while (!isFree);
+  
+        user.setRefreshToken(refreshToken);
+        user.setGoogleId(googleId);
+        userRepository.save(user);
+      }
+      
       Cookie cookie = new Cookie("userId", Long.toString(user.getId()));
       cookie.setPath("/");
-      cookie.setMaxAge(86400);
+      cookie.setMaxAge(604800);
       servletResponse.addCookie(cookie);
-    } catch (IOException e) {
-    }
-
+      } catch(IOException | GeneralSecurityException e){
+      }
+  
     return new RedirectView(redirectUri);
   }
 
@@ -150,6 +187,7 @@ public class UserController {
     Calendar userCalendar = initCalendar(userId);
 
     var projectO = projectRepository.findById(projectId);
+    
     if (projectO.isEmpty()) {
       throw new IllegalArgumentException("No such project");
     }
@@ -162,7 +200,9 @@ public class UserController {
         .setOrderBy("startTime")
         .setSingleEvents(true)
         .execute();
+    
     List<Event> items = events.getItems();
+    
     if (items.isEmpty()) {
       System.out.println("No upcoming events found.");
     } else {
@@ -172,9 +212,11 @@ public class UserController {
         if (start == null) {
           start = event.getStart().getDate();
         }
+        
         String description = event.getDescription();
         String summary = event.getSummary();
         DateTime end = event.getEnd().getDateTime();
+        
         if (end == null) {
           end = event.getEnd().getDate();
         }
@@ -183,6 +225,7 @@ public class UserController {
             Instant.ofEpochMilli(start.getValue()),
             ZoneId.systemDefault()
         );
+        
         ZonedDateTime endDateTime = ZonedDateTime.ofInstant(
             Instant.ofEpochMilli(start.getValue()),
             ZoneId.systemDefault()
@@ -237,6 +280,7 @@ public class UserController {
       String calendarId = "primary";
       event = userCalendar.events().insert(calendarId, event).execute();
     }
+    
     return new SimpleResponse();
   }
 }
