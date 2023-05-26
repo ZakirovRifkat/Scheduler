@@ -1,11 +1,7 @@
 package com.mazyavr.schedule.controller;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.google.api.client.googleapis.auth.oauth2.*;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
@@ -14,13 +10,21 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
 import com.mazyavr.schedule.dto.SimpleResponse;
-import com.mazyavr.schedule.dto.UserDto;
 import com.mazyavr.schedule.entity.TaskEntity;
 import com.mazyavr.schedule.entity.UserEntity;
 import com.mazyavr.schedule.repository.ProjectRepository;
 import com.mazyavr.schedule.repository.TaskRepository;
 import com.mazyavr.schedule.repository.UserRepository;
-import com.mazyavr.schedule.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -28,23 +32,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder.In;
-import org.apache.tomcat.jni.Time;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Random;
 
 
 @Controller
@@ -53,6 +40,9 @@ import java.util.Random;
 public class UserController {
 
   final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+  String CLIENT_ID = "530835646351-odkl0qt3l07n6s7httrpsd6rd37ka5l9.apps.googleusercontent.com";
+  String CLIENT_SECRET = "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";
+  String REDIRECT_URI = "http://localhost:8080/users/login";
 
   @Autowired
   private UserRepository userRepository;
@@ -61,23 +51,25 @@ public class UserController {
   @Autowired
   private TaskRepository taskRepository;
 
-  private String refreshToken;
-  private String googleId;
-  private Integer lifespan;
-
   private Calendar initCalendar(long userId) {
 
-    Calendar userCalendar = null;
+    String refreshToken = userRepository.findById(userId).get().getRefreshToken();
 
-    String userToken = userRepository.findById(userId).get().getRefreshToken();
-
-    if (userToken == null) {
+    if (refreshToken == null) {
       throw new RuntimeException("Unable to initialize google calendar");
     }
   
     try {
       var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-      var credential = new GoogleCredential().setAccessToken(userToken);
+      
+      var response = new GoogleRefreshTokenRequest(
+        HTTP_TRANSPORT, JSON_FACTORY, refreshToken,
+        CLIENT_ID, CLIENT_SECRET
+      ).execute();
+      
+      var accessToken = response.getAccessToken();
+      
+      var credential = new GoogleCredential().setAccessToken(accessToken);
       
       return new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
         .setApplicationName("DownScheduler")
@@ -94,27 +86,24 @@ public class UserController {
       HttpServletResponse servletResponse
   ) {
     try {
-      var HTTP_TRANSPORT = new NetHttpTransport();
-      var CLIENT_ID = "530835646351-odkl0qt3l07n6s7httrpsd6rd37ka5l9.apps.googleusercontent.com";
+      var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
       
       GoogleTokenResponse response = new GoogleAuthorizationCodeTokenRequest(
-        HTTP_TRANSPORT, new GsonFactory(), CLIENT_ID,
-        "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",
-        code, "http://localhost:8080/users/login")
+        HTTP_TRANSPORT, JSON_FACTORY, CLIENT_ID,
+        CLIENT_SECRET, code, REDIRECT_URI)
         .execute();
-  
-      this.refreshToken = response.getAccessToken();
+      
       var idToken = response.getIdToken();
       var verifier = new GoogleIdTokenVerifier.Builder(HTTP_TRANSPORT, JSON_FACTORY)
         .setAudience(Collections.singletonList(CLIENT_ID)).build();
   
       var verifiedToken = verifier.verify(idToken);
-      
-      if (verifiedToken != null) {
-        googleId = verifiedToken.getPayload().getSubject();
+  
+      if (verifiedToken == null) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No user ID provided");
       }
-        
-      this.lifespan = Math.toIntExact(response.getExpiresInSeconds());
+  
+      var googleId = verifiedToken.getPayload().getSubject();
   
       UserEntity user = null;
       
@@ -124,27 +113,9 @@ public class UserController {
         }
       }
       
-      if (user != null){
+      if (user == null){
         user = new UserEntity();
-        
-        Boolean isFree;
-        long id;
-        Random r = new Random();
-        
-        do{
-          id = r.nextLong(1073741824); //2^30 = 1073741824
-          isFree = true;
-          
-          for (UserEntity t : userRepository.findAll()) {
-            if (t.getId() == id) {
-              isFree = false;
-              break;
-            }
-          }
-          
-        } while (!isFree);
-  
-        user.setRefreshToken(refreshToken);
+        user.setRefreshToken(response.getRefreshToken());
         user.setGoogleId(googleId);
         userRepository.save(user);
       }
