@@ -22,8 +22,8 @@ public class ProjectController {
       summary = "Добавление нового проекта"
   )
   @PostMapping(path = "/add")
-  public @ResponseBody ProjectDto addNewProject(@RequestParam String name) {
-    return ProjectDto.fromEntity(projectService.add(name));
+  public @ResponseBody ProjectDto addNewProject(@RequestParam Long userId, @RequestParam String name) {
+    return ProjectDto.fromEntity(projectService.add(userId,name));
   }
 
   @Operation(
@@ -48,7 +48,7 @@ public class ProjectController {
       summary = "Получение списка всех проектов"
   )
   @GetMapping(path = "/all")
-  public @ResponseBody Iterable<ProjectEntity> getAllProjects() {
-    return projectService.getAll();
+  public @ResponseBody Iterable<ProjectEntity> getAllProjects(@RequestParam long userId) {
+    return projectService.getAll(userId);
   }
 }
