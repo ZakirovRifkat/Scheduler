@@ -105,9 +105,10 @@ public class TaskController {
             summary = "Получить все таски"
     )
     @GetMapping(path = "/all")
-    public @ResponseBody Iterable<TaskEntity> getAllTasks(@RequestParam long id) {
-        return taskService.getAll(id);
+    public @ResponseBody Iterable<TaskEntity> getAllTasks(@RequestParam long userId, @RequestParam long projectId) {
+        return taskService.getAll(userId, projectId);
     }
+
 
     @Operation(
             summary = "Получить все сегодняшние таски"
