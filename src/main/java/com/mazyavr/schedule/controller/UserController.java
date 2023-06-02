@@ -10,6 +10,8 @@ import com.mazyavr.schedule.Config;
 import com.mazyavr.schedule.dto.SimpleResponse;
 import com.mazyavr.schedule.entity.UserEntity;
 import com.mazyavr.schedule.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -40,9 +42,10 @@ public class UserController {
     private Config config;
 
     @GetMapping(path = "/login")
+    @Operation(summary = "Авторизация пользователя через google-аккаунт")
     public @ResponseBody RedirectView login(
-            @RequestParam(value = "code") String code,
-            @RequestParam(value = "state") String redirectUri,
+            @RequestParam(value = "code")  @Parameter(description = "Код, возвращаемый google после авторизации") String code,
+            @RequestParam(value = "state") @Parameter(description = "Адрес перенаправления пользователя после авторизации") String redirectUri,
             HttpServletResponse servletResponse
     ) throws IOException, GeneralSecurityException {
         var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -94,6 +97,7 @@ public class UserController {
     }
 
     @PostMapping(path = "/logout")
+    @Operation(summary = "Выход пользователя из аккаунта")
     public @ResponseBody SimpleResponse logout(HttpServletResponse response) {
         Cookie cookie = new Cookie(USER_ID_COOKIE, null);
         cookie.setPath("/");
@@ -104,6 +108,7 @@ public class UserController {
     }
 
     @GetMapping(value = "/me")
+    @Operation(summary = "Получить id авторизированного пользователя")
     public @ResponseBody UserResponse getMe(@CookieValue(value = USER_ID_COOKIE, required = false) Long userId) {
         if (userId == null) {
             return new UserResponse(Optional.empty());
