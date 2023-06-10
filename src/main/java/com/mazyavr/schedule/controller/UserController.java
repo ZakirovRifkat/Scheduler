@@ -44,7 +44,7 @@ public class UserController {
     @GetMapping(path = "/login")
     @Operation(summary = "Авторизация пользователя через google-аккаунт")
     public @ResponseBody RedirectView login(
-            @RequestParam(value = "code")  @Parameter(description = "Код, возвращаемый google после авторизации") String code,
+            @RequestParam(value = "code") @Parameter(description = "Код, возвращаемый google после авторизации") String code,
             @RequestParam(value = "state") @Parameter(description = "Адрес перенаправления пользователя после авторизации") String redirectUri,
             HttpServletResponse servletResponse
     ) throws IOException, GeneralSecurityException {
@@ -56,7 +56,6 @@ public class UserController {
                 .execute();
 
         var idToken = response.getIdToken();
-        var c = response.parseIdToken();
         var verifier = new GoogleIdTokenVerifier.Builder(HTTP_TRANSPORT, JSON_FACTORY)
                 .setAudience(Collections.singletonList(config.getGoogleClientId())).build();
 
@@ -69,7 +68,6 @@ public class UserController {
         var googleId = verifiedToken.getPayload().getSubject();
 
         UserEntity user = null;
-
         for (UserEntity t : userRepository.findAll()) {
             if (googleId.equals(t.getGoogleId())) {
                 user = t;

@@ -19,8 +19,10 @@ import com.mazyavr.schedule.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -47,11 +49,14 @@ class GoogleController {
 
 
     private Calendar initCalendar(long userId) throws IOException, GeneralSecurityException {
+        var user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No such user");
+        }
 
-        String refreshToken = userRepository.findById(userId).get().getRefreshToken();
-
+        String refreshToken = user.get().getRefreshToken();
         if (refreshToken == null) {
-            throw new RuntimeException("Unable to initialize google calendar");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to initialize google calendar");
         }
 
         var HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -88,19 +93,14 @@ class GoogleController {
 
         var project = projectO.get();
 
-        DateTime now = new DateTime(System.currentTimeMillis());
         Events events = userCalendar.events().list("primary")
-//                .setTimeMin(now)
                 .setOrderBy("startTime")
                 .setSingleEvents(true)
                 .execute();
 
         List<Event> items = events.getItems();
 
-        if (items.isEmpty()) {
-            System.out.println("No upcoming events found.");
-        } else {
-            System.out.println("Upcoming events");
+        if (!items.isEmpty()) {
             for (Event event : items) {
                 DateTime start = event.getStart().getDateTime();
                 if (start == null) {
@@ -109,11 +109,6 @@ class GoogleController {
 
                 String description = event.getDescription();
                 String summary = event.getSummary();
-                DateTime end = event.getEnd().getDateTime();
-
-                if (end == null) {
-                    end = event.getEnd().getDate();
-                }
 
                 ZonedDateTime startDateTime = ZonedDateTime.ofInstant(
                         Instant.ofEpochMilli(start.getValue()),
@@ -175,7 +170,7 @@ class GoogleController {
             event.setEnd(end);
 
             String calendarId = "primary";
-            event = userCalendar.events().insert(calendarId, event).execute();
+            userCalendar.events().insert(calendarId, event).execute();
         }
 
         return new SimpleResponse();
