@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: database-deployment
+      labels:
+        app: scheduler-database
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          project: database
+      template:
+        metadata:
+          labels:
+            project: database
+        spec:
+          containers:
+            - name: db
+              image: mysql
+              env:
+                - name: MYSQL_ROOT_PASSWORD
+                  value: pwd
+                - name: MYSQL_DATABASE
+                  value: scheduler
+                - name: MYSQL_USER
+                  value: scheduler
+                - name: MYSQL_PASSWORD
+                  value: pwd
+              ports:
+                - name: mysql
+                  containerPort: 3306
+                  hostPort: 3306
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dbservice
+  labels:
+    name: database-svc
+spec:
+  selector:
+    project: database    # Selecting PODS with those Labels
+  ports:
+    - name: db-listener
+      protocol: TCP
+      port: 3333  # Port on Load Balancer
+      targetPort: 3306  # Port on POD
+  type: LoadBalancer

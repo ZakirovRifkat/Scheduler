@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: app-deployment
+      labels:
+        app: scheduler
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          project: scheduler
+      template:
+        metadata:
+          labels:
+            project: scheduler
+        spec:
+          containers:
+            - name: front
+              image: rifkatzakirov/scheduler-front
+              ports:
+                - containerPort: 3000
+                  hostPort: 3000
+              env:
+                - name: REACT_APP_API_HOST
+                  value: localhost:8080
+
+            - name: back
+              image: docker.io/library/schedule:0.0.1-SNAPSHOT
+              ports:
+                - containerPort: 8080
+                  hostPort: 8080
+              env:
+                - name: SPRING_APPLICATION_JSON
+                  value: '{
+                    "spring.datasource.url": "jdbc:mysql://dbservice:3333/scheduler?useSSL=false",
+                    "spring.datasource.username": "scheduler",
+                    "spring.datasource.password": "pwd",
+                    "spring.jpa.hibernate.ddl-auto": "create"
+                  }'
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+  labels:
+    name: app-svc
+spec:
+  type: LoadBalancer
+  selector:
+    project: scheduler    # Selecting PODS with those Labels
+  ports:
+    - name: front-listener
+      protocol: TCP
+      port: 3000  # Port on Load Balancer
+      targetPort: 3000  # Port on POD
+
+    - name: api-listener
+      protocol: TCP
+      port: 8080  # Port on Load Balancer
+      targetPort: 8080  # Port on POD
