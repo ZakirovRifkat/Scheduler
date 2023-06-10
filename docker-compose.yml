@@ -2,7 +2,7 @@ version: "1.0"
 
 services:
   app:
-    image: docker.io/library/schedule:0.0.1
+    image: docker.io/library/schedule:0.0.1-SNAPSHOT
     ports:
       - "8080:8080"
     depends_on:

@@ -1,11 +1,9 @@
 package com.mazyavr.schedule.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
+@Table(name = "users")
 public class UserEntity {
 
     @Id
@@ -14,8 +12,6 @@ public class UserEntity {
 
     private String googleId;
     private String refreshToken;
-//  @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
-//  private List<ProjectEntity> projects;
 
     public long getId() {
         return id;
@@ -32,14 +28,6 @@ public class UserEntity {
     public void setGoogleId(String googleId) {
         this.googleId = googleId;
     }
-
-//    public List<ProjectEntity> getProjects() {
-//        return projects;
-//    }
-//
-//    public void setProjects(List<ProjectEntity> projects) {
-//        this.projects = projects;
-//    }
 
     public String getRefreshToken() {
         return refreshToken;

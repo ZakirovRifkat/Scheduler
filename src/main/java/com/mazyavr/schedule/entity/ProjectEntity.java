@@ -4,41 +4,42 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
+@Table(name = "projects")
 public class ProjectEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long id;
-  private String name;
-  
-  @OneToMany (cascade = CascadeType.ALL, mappedBy = "project")
-  private List<TaskEntity> tasks;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+    private String name;
 
-  @ManyToOne
-  @JoinColumn(name = "user_id")
-  private UserEntity user;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "project")
+    private List<TaskEntity> tasks;
 
-  public long getId() {
-    return id;
-  }
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
-  public String getName() {
-    return name;
-  }
+    public long getId() {
+        return id;
+    }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public UserEntity getUser() {
-    return user;
-  }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public void setUser(UserEntity user) {
-    this.user = user;
-  }
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public void setUser(UserEntity user) {
+        this.user = user;
+    }
 }

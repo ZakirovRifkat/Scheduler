@@ -1,97 +1,93 @@
 package com.mazyavr.schedule.entity;
 
+import javax.persistence.*;
 import java.time.ZonedDateTime;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 @Entity
+@Table(name = "tasks")
 public class TaskEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long id;
-  private String name;
-  private String description;
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  private long priority;
-  private boolean status;
-  
-  /**
-   * A date-time with a time-zone in the ISO-8601 calendar system, such as 2007-12-03T10:15:30+01:00
-   * Europe/Paris.
-   */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+    private String name;
+    private String description;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long priority;
+    private boolean status;
 
-  private ZonedDateTime start;
-  private ZonedDateTime end;
-  @ManyToOne
-  @JoinColumn(name = "project_id")
-  private ProjectEntity project;
+    /**
+     * A date-time with a time-zone in the ISO-8601 calendar system, such as 2007-12-03T10:15:30+01:00
+     * Europe/Paris.
+     */
 
-  public long getId() {
-    return id;
-  }
+    private ZonedDateTime start;
+    private ZonedDateTime end;
+    @ManyToOne
+    @JoinColumn(name = "project_id")
+    private ProjectEntity project;
 
-  public String getName() {
-    return name;
-  }
+    public long getId() {
+        return id;
+    }
 
-  public boolean isStatus() {
-    return status;
-  }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-  public ZonedDateTime getStart() {
-    return start;
-  }
-  
-  public ZonedDateTime getEnd() {
-    return end;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public ProjectEntity getProject() {
-    return project;
-  }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
+    public boolean isStatus() {
+        return status;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
 
-  public void setStatus(boolean status) {
-    this.status = status;
-  }
+    public ZonedDateTime getStart() {
+        return start;
+    }
 
-  public void setStart(ZonedDateTime start) {
-    this.start = start;
-  }
-  
-  public void setEnd(ZonedDateTime end) {
-    this.end = end;
-  }
+    public void setStart(ZonedDateTime start) {
+        this.start = start;
+    }
 
-  public void setProject(ProjectEntity project) {
-    this.project = project;
-  }
+    public ZonedDateTime getEnd() {
+        return end;
+    }
 
-  public String getDescription() {
-    return description;
-  }
+    public void setEnd(ZonedDateTime end) {
+        this.end = end;
+    }
 
-  public long getPriority() {
-    return priority;
-  }
+    public ProjectEntity getProject() {
+        return project;
+    }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+    public void setProject(ProjectEntity project) {
+        this.project = project;
+    }
 
-  public void setPriority(Long priority) {
-    this.priority = priority;
-  }
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public long getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Long priority) {
+        this.priority = priority;
+    }
 }
